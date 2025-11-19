@@ -1,5 +1,5 @@
 # Build stage
-FROM hexpm/elixir:1.18.0-erlang-27.3.4.1-debian-bookworm-20251117 AS builder
+FROM hexpm/elixir:1.18-erlang-26.2-debian-bullseye-20251117-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
