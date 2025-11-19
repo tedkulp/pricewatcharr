@@ -1,4 +1,4 @@
-# Pricarr - Price Tracking System
+# Pricewatcharr - Price Tracking System
 
 A Phoenix LiveView application for tracking product prices across multiple retailers (starting with Amazon) and receiving alerts when prices drop.
 
