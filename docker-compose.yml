@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "4000:4000"
+    volumes:
+      # Mount source code for hot reload
+      - .:/app
+      # Anonymous volumes for deps and build (faster, uses container's compiled deps)
+      - /app/deps
+      - /app/_build
+      # Mount data directory for SQLite DB persistence
+      - ./data:/app/data
+    environment:
+      - MIX_ENV=dev
+      - DATABASE_PATH=/app/data/pricarr_dev.db
+      - PORT=4000
+    command: mix phx.server
+    stdin_open: true
+    tty: true

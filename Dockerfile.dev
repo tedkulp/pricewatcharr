@@ -1,0 +1,39 @@
+FROM hexpm/elixir:1.16.0-erlang-26.2.1-alpine-3.19.0
+
+# Install build dependencies
+RUN apk add --no-cache \
+    build-base \
+    git \
+    nodejs \
+    npm \
+    python3 \
+    py3-pip \
+    inotify-tools \
+    sqlite
+
+# Install Apprise for notifications
+RUN pip3 install --break-system-packages apprise
+
+WORKDIR /app
+
+# Install hex and rebar
+RUN mix local.hex --force && \
+    mix local.rebar --force
+
+# Copy mix files
+COPY mix.exs mix.lock ./
+RUN mix deps.get
+
+# Copy assets files
+COPY assets/package*.json assets/
+RUN cd assets && npm install
+
+# Copy the rest of the application
+COPY . .
+
+# Compile application
+RUN mix deps.compile
+
+EXPOSE 4000
+
+CMD ["mix", "phx.server"]
