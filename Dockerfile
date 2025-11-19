@@ -1,12 +1,13 @@
 # Build stage
-FROM hexpm/elixir:1.18.0-erlang-27.3.4.1-debian-bookworm-20251117
+FROM hexpm/elixir:1.18.0-erlang-27.3.4.1-debian-bookworm-20251117 AS builder
 
 # Install build dependencies
-RUN apk add --no-cache \
-    build-base \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     git \
     nodejs \
-    npm
+    npm \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -39,16 +40,18 @@ RUN mix compile
 RUN mix release
 
 # Runtime stage
-FROM alpine:3.19.0 AS runner
+FROM debian:bookworm-slim AS runner
 
 # Install runtime dependencies
-RUN apk add --no-cache \
-    libstdc++ \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libstdc++6 \
     openssl \
-    ncurses-libs \
+    libncurses6 \
     python3 \
-    py3-pip \
-    sqlite
+    python3-pip \
+    sqlite3 \
+    tini \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Apprise for notifications
 RUN pip3 install --break-system-packages apprise
@@ -56,8 +59,8 @@ RUN pip3 install --break-system-packages apprise
 WORKDIR /app
 
 # Create non-root user
-RUN addgroup -g 1000 pricarr && \
-    adduser -u 1000 -G pricarr -s /bin/sh -D pricarr
+RUN groupadd -g 1000 pricarr && \
+    useradd -u 1000 -g pricarr -s /bin/sh -m pricarr
 
 # Copy release from builder
 COPY --from=builder --chown=pricarr:pricarr /app/_build/prod/rel/pricarr ./
@@ -73,4 +76,5 @@ ENV PHX_SERVER=true
 
 EXPOSE 4000
 
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["bin/pricarr", "start"]
