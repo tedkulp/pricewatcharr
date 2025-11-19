@@ -1,5 +1,5 @@
 # Build stage
-FROM hexpm/elixir:1.16.0-erlang-26.2.1-alpine-3.19.0 AS builder
+FROM hexpm/elixir:1.18.0-erlang-27.3.4.1-debian-bookworm-20251117
 
 # Install build dependencies
 RUN apk add --no-cache \
