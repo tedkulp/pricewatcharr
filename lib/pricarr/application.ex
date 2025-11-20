@@ -29,7 +29,20 @@ defmodule Pricarr.Application do
     case Supervisor.start_link(children, opts) do
       {:ok, pid} ->
         # Schedule price checks for any URLs that are overdue
-        Task.start(fn -> Pricarr.Workers.Scheduler.schedule_due_checks() end)
+        # Small delay to ensure Repo is ready
+        Task.start(fn ->
+          Process.sleep(1000)
+
+          try do
+            IO.puts(">>> Starting scheduler...")
+            result = Pricarr.Workers.Scheduler.schedule_due_checks()
+            IO.puts(">>> Scheduler result: #{inspect(result)}")
+          rescue
+            e ->
+              IO.puts(">>> Scheduler error: #{inspect(e)}")
+              IO.puts(">>> Stacktrace: #{inspect(__STACKTRACE__)}")
+          end
+        end)
         {:ok, pid}
 
       error ->

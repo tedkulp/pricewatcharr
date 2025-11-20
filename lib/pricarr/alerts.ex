@@ -78,13 +78,17 @@ defmodule Pricarr.Alerts do
 
   @doc """
   Checks if an alert rule should be triggered based on price change.
+  Only alerts if price meets threshold AND price has changed since last alert.
   """
-  def should_trigger_alert?(%AlertRule{} = rule, new_price, old_price) do
+  def should_trigger_alert?(%AlertRule{} = rule, new_price, old_price, product_url_id) do
     cond do
       not rule.enabled ->
         false
 
       in_cooldown?(rule) ->
+        false
+
+      not price_changed_since_last_alert?(rule.id, product_url_id, new_price) ->
         false
 
       true ->
@@ -120,6 +124,25 @@ defmodule Pricarr.Alerts do
   end
 
   defp check_percentage_drop(_new_price, nil, _threshold), do: false
+
+  defp price_changed_since_last_alert?(alert_rule_id, product_url_id, new_price) do
+    last_log =
+      AlertLog
+      |> where([al], al.alert_rule_id == ^alert_rule_id and al.product_url_id == ^product_url_id)
+      |> order_by([al], desc: al.inserted_at)
+      |> limit(1)
+      |> Repo.one()
+
+    case last_log do
+      nil ->
+        # No previous alert, so this is a new alert
+        true
+
+      log ->
+        # Alert only if price has changed
+        Decimal.compare(new_price, log.triggered_price) != :eq
+    end
+  end
 
   @doc """
   Updates the last_triggered_at timestamp for an alert rule.

@@ -79,7 +79,26 @@ defmodule PricarrWeb.Telemetry do
       summary("vm.memory.total", unit: {:byte, :kilobyte}),
       summary("vm.total_run_queue_lengths.total"),
       summary("vm.total_run_queue_lengths.cpu"),
-      summary("vm.total_run_queue_lengths.io")
+      summary("vm.total_run_queue_lengths.io"),
+
+      # Oban Metrics
+      counter("oban.job.start.count",
+        tags: [:queue, :worker],
+        description: "Number of jobs started"
+      ),
+      counter("oban.job.stop.count",
+        tags: [:queue, :worker],
+        description: "Number of jobs completed"
+      ),
+      counter("oban.job.exception.count",
+        tags: [:queue, :worker],
+        description: "Number of job exceptions"
+      ),
+      summary("oban.job.stop.duration",
+        tags: [:queue, :worker],
+        unit: {:native, :millisecond},
+        description: "Job execution time"
+      )
     ]
   end
 

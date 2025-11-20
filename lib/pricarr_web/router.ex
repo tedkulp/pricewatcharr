@@ -1,6 +1,8 @@
 defmodule PricarrWeb.Router do
   use PricarrWeb, :router
 
+  import Oban.Web.Router
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -46,8 +48,19 @@ defmodule PricarrWeb.Router do
     scope "/dev" do
       pipe_through :browser
 
-      live_dashboard "/dashboard", metrics: PricarrWeb.Telemetry
+      live_dashboard "/dashboard",
+        metrics: PricarrWeb.Telemetry
+        # additional_pages: [
+        #   oban: Oban.LiveDashboard
+        # ]
+
       forward "/mailbox", Plug.Swoosh.MailboxPreview
+    end
+
+    scope "/" do
+      pipe_through :browser
+
+      oban_dashboard("/oban")
     end
   end
 end

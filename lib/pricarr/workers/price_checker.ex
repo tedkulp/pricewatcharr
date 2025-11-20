@@ -89,7 +89,7 @@ defmodule Pricarr.Workers.PriceChecker do
     old_price = product_url.last_price
 
     Enum.each(alert_rules, fn rule ->
-      if Alerts.should_trigger_alert?(rule, new_price, old_price) do
+      if Alerts.should_trigger_alert?(rule, new_price, old_price, product_url.id) do
         # Enqueue alert sender job
         %{
           alert_rule_id: rule.id,
@@ -101,6 +101,10 @@ defmodule Pricarr.Workers.PriceChecker do
         |> Oban.insert()
 
         Logger.info("Alert triggered for rule #{rule.id} (#{rule.name})")
+      else
+        Logger.debug(
+          "Alert not triggered for rule #{rule.id} (#{rule.name}) - conditions not met or price unchanged"
+        )
       end
     end)
   end
@@ -111,9 +115,11 @@ defmodule Pricarr.Workers.PriceChecker do
       |> new(schedule_in: product_url.check_interval_minutes * 60)
       |> Oban.insert()
 
-      Logger.debug(
+      Logger.info(
         "Scheduled next check for product URL #{product_url.id} in #{product_url.check_interval_minutes} minutes"
       )
+    else
+      Logger.info("Skipping reschedule for inactive product URL #{product_url.id}")
     end
   end
 

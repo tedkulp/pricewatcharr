@@ -61,10 +61,12 @@ defmodule Pricarr.MixProject do
       {:bandit, "~> 1.5"},
       # Additional dependencies for Pricarr
       {:oban, "~> 2.17"},
+      {:oban_web, "~> 2.11"},
       {:contex, "~> 0.5"},
       {:rambo, "~> 0.3"},
       {:timex, "~> 3.7"},
-      {:decimal, "~> 2.0"}
+      {:decimal, "~> 2.0"},
+      {:igniter, "~> 0.5", only: [:dev]}
     ]
   end
 

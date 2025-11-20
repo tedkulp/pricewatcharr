@@ -110,23 +110,11 @@ defmodule Pricarr.Products do
   end
 
   @doc """
-  Returns active product URLs that are due for checking.
+  Returns all active product URLs.
   """
-  def list_urls_due_for_check do
-    now = DateTime.utc_now()
-
+  def list_active_urls do
     ProductUrl
     |> where([pu], pu.active == true)
-    |> where(
-      [pu],
-      is_nil(pu.last_checked_at) or
-        fragment(
-          "datetime(?, 'utc') <= datetime(?, '-' || ? || ' minutes', 'utc')",
-          pu.last_checked_at,
-          ^now,
-          pu.check_interval_minutes
-        )
-    )
     |> Repo.all()
   end
 
